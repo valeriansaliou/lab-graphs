@@ -3,17 +3,17 @@ lab-graphs
 
 Some graph theory experiments. Contains Dijkstra and Floyd-Warshall algorithm implementations in Ruby.
 
-Required environment:
+# Required environment
 
  * Requires Ruby v2.2.x
  * Requires Gem v2.5.x
  * Requires Bundler (`gem install bundler`)
 
-How to install dependencies:
+# How to install dependencies
 
- * Execute (in project directory): `gem install`
+ * Execute (in project directory): `bundle install`
 
-How to run tests:
+# How to run tests
 
  * Execute (in project directory): `./bin/test-suite`
 
