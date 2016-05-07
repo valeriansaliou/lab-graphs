@@ -1,0 +1,15 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    colorize (0.7.7)
+    ruby_deep_clone (0.6.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  colorize (~> 0.7.7)
+  ruby_deep_clone (~> 0.6.0)
+
+BUNDLED WITH
+   1.10.6

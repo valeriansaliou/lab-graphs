@@ -1,0 +1,235 @@
+#!/usr/bin/env ruby
+
+##
+#  Test suite
+#
+#  Copyright 2015, Valerian Saliou
+#  Distributed under MIT License
+##
+
+require 'colorize'
+
+require_relative '../config'
+require_relative '../src/_graph'
+require_relative '../src/floyd_warshall'
+require_relative '../src/dijkstra'
+require_relative '../src/routing'
+
+puts ' --- '
+puts
+puts 'GRAPHS PROJECT TEST SUITE'
+puts 'Valerian Saliou'
+puts
+puts 'Tests are specified in config.rb'
+puts
+puts 'This script tests algorithm implementations with specified input data'
+puts 'Then it compares their output against theoretically valid outputs'
+puts
+puts ' --- '
+puts
+puts 'Running tests...'
+puts
+
+
+# Test Graphs abstraction
+puts '======================='.magenta
+print '=='.magenta
+print ' Graph Abstraction '.white
+puts '=='.magenta
+puts '======================='.magenta
+puts
+
+Config::GRAPHS.each_with_index { |graph_set, index|
+  puts " > [graph_abstraction:test:#{index}] Testing input graph: " \
+         "#{graph_set[:graph]}"
+  puts " > [graph_abstraction:test:#{index}] Expecting adjacency matrix: " \
+         "#{graph_set[:result]}"
+
+  # Initialize
+  current_graph = GraphAbstraction.new(
+    nodes=graph_set[:graph][:nodes],
+    arcs=graph_set[:graph][:arcs],
+    fill_mode=graph_set[:graph][:fill_mode],
+    is_directed=graph_set[:graph][:is_directed],
+    is_weighed=graph_set[:graph][:is_weighed]
+  )
+
+  current_adjacency_matrix = current_graph.raw
+
+  # Compare result
+  if current_adjacency_matrix == graph_set[:result]
+    print " > [graph_abstraction:test:#{index}] "
+    puts "Adjacency matrix is valid" \
+            .colorize(:color => :black, :background => :green)
+  else
+    print " > [graph_abstraction:test:#{index}] "
+    puts "Error: adjacency matrix is invalid" \
+            .colorize(:color => :white, :background => :red)
+
+    print " > [graph_abstraction:test:#{index}] "
+    puts "We found this adjacency matrix instead:" \
+         " #{current_adjacency_matrix}" \
+            .colorize(:color => :white, :background => :red)
+  end
+}
+
+puts
+
+
+# Test Floyd-Warshall
+puts '========================'.magenta
+print '===='.magenta
+print ' Floyd-Warshall '.white
+puts '===='.magenta
+puts '========================'.magenta
+puts
+
+Config::WARSHALL.each_with_index { |matrix_set, index|
+  puts " > [floyd_warshall:test:#{index}] Testing input graph: " \
+         "#{matrix_set[:graph]}"
+  puts " > [floyd_warshall:test:#{index}] Expecting output matrix: " \
+         "#{matrix_set[:result]}"
+
+  # Initialize
+  current_floyd_warshall = FloydWarshall.new(
+    graph=GraphAbstraction.new(
+      nodes=matrix_set[:graph][:nodes],
+      arcs=matrix_set[:graph][:arcs],
+      fill_mode=matrix_set[:graph][:fill_mode],
+      is_directed=matrix_set[:graph][:is_directed],
+      is_weighed=matrix_set[:graph][:is_weighed]
+    )
+  )
+  current_result = current_floyd_warshall.do
+
+  # Compare result
+  if current_result == matrix_set[:result]
+    print " > [floyd_warshall:test:#{index}] "
+    puts "Matrix output is valid" \
+            .colorize(:color => :black, :background => :green)
+  else
+    print " > [floyd_warshall:test:#{index}] "
+    puts "Error: matrix output is invalid" \
+            .colorize(:color => :white, :background => :red)
+
+    print " > [floyd_warshall:test:#{index}] "
+    puts "We found this matrix instead:" \
+         " #{current_result}" \
+            .colorize(:color => :white, :background => :red)
+  end
+}
+
+puts
+
+
+# Test Dijkstra
+puts '========================'.magenta
+print '======='.magenta
+print ' Dijkstra '.white
+puts '======='.magenta
+puts '========================'.magenta
+puts
+
+dijkstra = Dijkstra.new(
+  graph=GraphAbstraction.new(
+    nodes=Config::DIJKSTRA[:graph][:nodes],
+    arcs=Config::DIJKSTRA[:graph][:arcs],
+    fill_mode=Config::DIJKSTRA[:graph][:fill_mode],
+    is_directed=Config::DIJKSTRA[:graph][:is_directed],
+    is_weighed=Config::DIJKSTRA[:graph][:is_weighed]
+  )
+)
+
+puts " > [dijkstra:test:main] Testing with graph: #{Config::DIJKSTRA[:graph]}"
+
+Config::DIJKSTRA[:sources].each_with_index { |source_set, index|
+  puts " > [dijkstra:test:#{index}] Testing input source: " \
+         "#{source_set[:source_node]} (processes shortest paths from this node)"
+  puts " > [dijkstra:test:#{index}] Expecting output distance: " \
+         "#{source_set[:result_distance]}"
+  puts " > [dijkstra:test:#{index}] Expecting output previous: " \
+         "#{source_set[:result_previous]}"
+
+  # Initialize
+  current_result_data = dijkstra.do(source_set[:source_node])
+
+  # Compare result
+  if current_result_data[:distance] != source_set[:result_distance]
+    print " > [dijkstra:test:#{index}] "
+    puts "Error: distance data output is invalid" \
+            .colorize(:color => :white, :background => :red)
+
+    print " > [dijkstra:test:#{index}] "
+    puts "We found this distance data instead:" \
+         " #{current_result_data[:distance]}" \
+            .colorize(:color => :white, :background => :red)
+  end
+
+  if current_result_data[:previous] != source_set[:result_previous]
+    print " > [dijkstra:test:#{index}] "
+    puts "Error: previous data output is invalid" \
+            .colorize(:color => :white, :background => :red)
+
+    print " > [dijkstra:test:#{index}] "
+    puts "We found this previous data instead:" \
+         " #{current_result_data[:previous]}" \
+            .colorize(:color => :white, :background => :red)
+  end
+
+  if current_result_data[:distance] == source_set[:result_distance] && \
+      current_result_data[:previous] == source_set[:result_previous]
+    print " > [dijkstra:test:#{index}] "
+    puts "Data output is valid" \
+            .colorize(:color => :black, :background => :green)
+  end
+}
+
+puts
+
+
+# Test Routing
+puts '========================'.magenta
+print '======='.magenta
+print ' Routing '.white
+puts '========'.magenta
+puts '========================'.magenta
+puts
+
+Config::ROUTING.each_with_index { |matrix_set, index|
+  puts " > [routing:test:#{index}] Testing input graph: " \
+         "#{matrix_set[:graph]}"
+  puts " > [routing:test:#{index}] Expecting output matrix: " \
+         "#{matrix_set[:result]}"
+
+  # Initialize
+  current_routing = Routing.new(
+    graph=GraphAbstraction.new(
+      nodes=matrix_set[:graph][:nodes],
+      arcs=matrix_set[:graph][:arcs],
+      fill_mode=matrix_set[:graph][:fill_mode],
+      is_directed=matrix_set[:graph][:is_directed],
+      is_weighed=matrix_set[:graph][:is_weighed]
+    )
+  )
+  current_result = current_routing.do
+
+  # Compare result
+  if current_result == matrix_set[:result]
+    print " > [routing:test:#{index}] "
+    puts "Matrix output is valid" \
+            .colorize(:color => :black, :background => :green)
+  else
+    print " > [routing:test:#{index}] "
+    puts "Error: matrix output is invalid" \
+            .colorize(:color => :white, :background => :red)
+
+    print " > [routing:test:#{index}] "
+    puts "We found this matrix instead:" \
+         " #{current_result}" \
+            .colorize(:color => :white, :background => :red)
+  end
+}
+
+
+puts
+puts 'Done running tests.'
